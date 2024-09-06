@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
-using System.Drawing;
 
 namespace DealerEngine;
 
@@ -11,7 +11,7 @@ public partial class FormMainMenu : Form
 
     private Panel panelTopMenuBar;
     private Panel panelBottomMenuBar;
-    private Panel panelStagedInvoiceTotals;
+    private Panel panelQueuedDealerInvoiceTotals;
 
     private Button buttonImport;
     private Button buttonAddDealerToQueue;
@@ -20,12 +20,12 @@ public partial class FormMainMenu : Form
     private GroupBox gbInvoiceDate;
     private DateTimePicker dateTimePicker;
 
-    private DataGridView dgvStagedInvoices;
+    private DataGridView dgvQueuedDealers;
 
-    private Label labelVehicleCountAllDealers;
-    private Label labelVehicleCountAllDealersValue;
-    private Label labelTotalDueAllDealers;
-    private Label labelTotalDueAllDealersValue;
+    private Label labelVehicleCountAllQueuedDealers;
+    private Label labelVehicleCountAllQueuedDealersValue;
+    private Label labelTotalDueAllQueuedDealers;
+    private Label labelTotalDueAllQueuedDealersValue;
 
     // Constructor
     public FormMainMenu()
@@ -75,7 +75,6 @@ public partial class FormMainMenu : Form
 
         buttonAddDealerToQueue = new Button
         {
-            Enabled = false,
             Size = buttonSize,
             Location = new Point(buttonImport.Right + MARGIN, MARGIN),
             Anchor = (AnchorStyles.Top | AnchorStyles.Left),
@@ -84,6 +83,7 @@ public partial class FormMainMenu : Form
             Image = Properties.Resources.img_new,
             TextImageRelation = TextImageRelation.ImageBeforeText
         };
+        buttonAddDealerToQueue.Click += new EventHandler(buttonAddDealerToQueue_Click);
         panelTopMenuBar.Controls.Add(buttonAddDealerToQueue);
         
         Controls.Add(panelTopMenuBar);
@@ -119,57 +119,57 @@ public partial class FormMainMenu : Form
         };
         gbInvoiceDate.Controls.Add(dateTimePicker);
 
-        // Staged invoice totals
-        panelStagedInvoiceTotals = new Panel()
+        // Queued dealer invoice totals
+        panelQueuedDealerInvoiceTotals = new Panel()
         {
             //Enabled = false
         };
 
-        labelVehicleCountAllDealers = new Label
+        labelVehicleCountAllQueuedDealers = new Label
         {
             Size = new Size(120, 20),
             Location = new Point(0, 0),
             TextAlign = ContentAlignment.MiddleCenter,
             Text = "Vehicle Count"
         };
-        panelStagedInvoiceTotals.Controls.Add(labelVehicleCountAllDealers);
+        panelQueuedDealerInvoiceTotals.Controls.Add(labelVehicleCountAllQueuedDealers);
 
-        labelTotalDueAllDealers = new Label
+        labelTotalDueAllQueuedDealers = new Label
         {
             Size = new Size(120, 20),
-            Location = new Point(0, labelVehicleCountAllDealers.Bottom),
+            Location = new Point(0, labelVehicleCountAllQueuedDealers.Bottom),
             TextAlign = ContentAlignment.MiddleCenter,
             Text = "Total Sales"
         };
-        panelStagedInvoiceTotals.Controls.Add(labelTotalDueAllDealers);
+        panelQueuedDealerInvoiceTotals.Controls.Add(labelTotalDueAllQueuedDealers);
 
-        labelVehicleCountAllDealersValue = new Label
+        labelVehicleCountAllQueuedDealersValue = new Label
         {
             Size = new Size(120, 20),
-            Location = new Point(labelVehicleCountAllDealers.Right, 0),
+            Location = new Point(labelVehicleCountAllQueuedDealers.Right, 0),
             TextAlign = ContentAlignment.MiddleLeft,
             Text = ""
         };
-        panelStagedInvoiceTotals.Controls.Add(labelVehicleCountAllDealersValue);
+        panelQueuedDealerInvoiceTotals.Controls.Add(labelVehicleCountAllQueuedDealersValue);
 
-        labelTotalDueAllDealersValue = new Label
+        labelTotalDueAllQueuedDealersValue = new Label
         {
             Size = new Size(120, 20),
-            Location = new Point(labelVehicleCountAllDealersValue.Left, labelVehicleCountAllDealersValue.Bottom),
+            Location = new Point(labelVehicleCountAllQueuedDealersValue.Left, labelVehicleCountAllQueuedDealersValue.Bottom),
             TextAlign = ContentAlignment.MiddleLeft,
             Text = ""
         };
-        panelStagedInvoiceTotals.Controls.Add(labelTotalDueAllDealersValue);
+        panelQueuedDealerInvoiceTotals.Controls.Add(labelTotalDueAllQueuedDealersValue);
 
-        panelStagedInvoiceTotals.Size = new Size(
-            width: labelTotalDueAllDealersValue.Right, 
-            height: labelTotalDueAllDealersValue.Bottom);
+        panelQueuedDealerInvoiceTotals.Size = new Size(
+            width: labelTotalDueAllQueuedDealersValue.Right, 
+            height: labelTotalDueAllQueuedDealersValue.Bottom);
 
-        panelStagedInvoiceTotals.Location = new Point(
-            x: (panelBottomMenuBar.Width / 2) - (panelStagedInvoiceTotals.Width / 2),
-            y: (panelBottomMenuBar.Height / 2) - (panelStagedInvoiceTotals.Height / 2));
+        panelQueuedDealerInvoiceTotals.Location = new Point(
+            x: (panelBottomMenuBar.Width / 2) - (panelQueuedDealerInvoiceTotals.Width / 2),
+            y: (panelBottomMenuBar.Height / 2) - (panelQueuedDealerInvoiceTotals.Height / 2));
 
-        panelBottomMenuBar.Controls.Add(panelStagedInvoiceTotals);
+        panelBottomMenuBar.Controls.Add(panelQueuedDealerInvoiceTotals);
 
         // Generate invoices button
         buttonGenerate = new Button
@@ -188,8 +188,8 @@ public partial class FormMainMenu : Form
 
         Controls.Add(panelBottomMenuBar);
 
-        // Staged invoices
-        dgvStagedInvoices = new DataGridView
+        // Queued dealers
+        dgvQueuedDealers = new DataGridView
         {
             Size = new Size(
                 width: ClientSize.Width - MARGIN * 2,
@@ -210,10 +210,10 @@ public partial class FormMainMenu : Form
         };
 
         // Disable header highlighting
-        dgvStagedInvoices.EnableHeadersVisualStyles = false;
-        dgvStagedInvoices.ColumnHeadersDefaultCellStyle.SelectionBackColor = dgvStagedInvoices.ColumnHeadersDefaultCellStyle.BackColor;
+        dgvQueuedDealers.EnableHeadersVisualStyles = false;
+        dgvQueuedDealers.ColumnHeadersDefaultCellStyle.SelectionBackColor = dgvQueuedDealers.ColumnHeadersDefaultCellStyle.BackColor;
 
-        // Staged invoice columns
+        // Queued dealer columns
         DataGridViewTextBoxColumn colName = new DataGridViewTextBoxColumn
         {
             DataPropertyName = "Name",
@@ -265,7 +265,7 @@ public partial class FormMainMenu : Form
         colTotalDue.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
         colTotalDue.DefaultCellStyle.Format = "c";
 
-        dgvStagedInvoices.Columns.AddRange(
+        dgvQueuedDealers.Columns.AddRange(
         [
             colName,
             colWorkOrderCount,
@@ -275,27 +275,28 @@ public partial class FormMainMenu : Form
             colTotalDue
         ]);
 
-        Controls.Add(dgvStagedInvoices);
+        Controls.Add(dgvQueuedDealers);
 
         ResumeLayout();
 
-        updateStagedInvoices();
+        updateQueuedDealers();
     }
 
-    // Updates the Staged Invoices displayed in the DataGridView.
-    private void updateStagedInvoices()
+    // Updates the Queued Dealers displayed in the DataGridView,
+    // and the totals in the bottom panel.
+    private void updateQueuedDealers()
     {
         SuspendLayout();
 
-        var staged = Dealer.StagedDealers;
+        var queuedDealers = Dealer.QueuedDealers;
 
-        dgvStagedInvoices.DataSource = staged;
-        dgvStagedInvoices.Refresh();
+        dgvQueuedDealers.DataSource = queuedDealers;
+        dgvQueuedDealers.Refresh();
 
-        labelVehicleCountAllDealersValue.Text = Dealer.GetVehicleCountAllStagedDealers().ToString();
-        labelTotalDueAllDealersValue.Text = Dealer.GetTotalDueAllStagedDealers().ToString("c");
+        labelVehicleCountAllQueuedDealersValue.Text = Dealer.QueuedDealersVehicleCount.ToString();
+        labelTotalDueAllQueuedDealersValue.Text = Dealer.QueuedDealersTotalDue.ToString("c");
 
-        buttonGenerate.Enabled = staged.Length > 0;
+        buttonGenerate.Enabled = queuedDealers.Length > 0;
 
         ResumeLayout();
     }
@@ -341,9 +342,21 @@ public partial class FormMainMenu : Form
 
             finally
             {
-                updateStagedInvoices();
+                updateQueuedDealers();
             }
         }
+    }
+
+    // Handles clicking the Add Dealer to Queue button.
+    private void buttonAddDealerToQueue_Click(object sender, EventArgs e)
+    {
+        using Form addDealer = new FormAddDealerToQueue();
+
+        if (addDealer.ShowDialog() == DialogResult.OK)
+        {
+            updateQueuedDealers();
+        }
+
     }
 
     // Handles clicking the Generate button.
@@ -356,7 +369,7 @@ public partial class FormMainMenu : Form
 
         if (fbd.ShowDialog() == DialogResult.OK)
         {
-            foreach (Dealer d in Dealer.StagedDealers)
+            foreach (Dealer d in Dealer.QueuedDealers)
             {
                 d.GenerateInvoice(fbd.SelectedPath, dateTimePicker.Value);
             }

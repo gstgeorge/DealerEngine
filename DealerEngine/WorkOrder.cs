@@ -163,8 +163,7 @@ internal class WorkOrder
     {
         // Lookup dealer config.
         // If dealer config does not exist, raise exception.
-        var dealer = Dealer.SavedDealers.FirstOrDefault(x => x.Name == dealerName) 
-            ?? throw new ArgumentException($"No dealer configuration found.");
+        var dealer = Dealer.LookupDealer(dealerName) ?? throw new ArgumentException($"No dealer configuration found.");
 
         // If there is no work order for the given date, create one.
         if (dealer.WorkOrders.ContainsKey(date.Date) == false)
@@ -173,12 +172,11 @@ internal class WorkOrder
         }
 
         // Add the vehicle to the workorder
-        // TODO: If the vehicle already exists on the workorder, log this occurrence 
         if (dealer.WorkOrders[date.Date]._vehicles.Add(vehicle) == false)
         {
-            return;
+            return; // TODO: If the vehicle already exists on the workorder, log this occurrence 
         }
 
-        dealer.Staged = true;
+        dealer.Queued = true;
     }
 }

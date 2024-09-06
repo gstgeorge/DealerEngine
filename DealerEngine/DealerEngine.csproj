@@ -89,6 +89,12 @@
   <ItemGroup>
     <Compile Include="Dealer.Charge.cs" />
     <Compile Include="Dealer.cs" />
+    <Compile Include="FormAddDealerToQueue.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FormAddDealerToQueue.Designer.cs">
+      <DependentUpon>FormAddDealerToQueue.cs</DependentUpon>
+    </Compile>
     <Compile Include="FormMainMenu.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -107,6 +113,9 @@
     <Compile Include="Settings.cs" />
     <Compile Include="Vehicle.cs" />
     <Compile Include="WorkOrder.cs" />
+    <EmbeddedResource Include="FormAddDealerToQueue.resx">
+      <DependentUpon>FormAddDealerToQueue.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="FormMainMenu.resx">
       <DependentUpon>FormMainMenu.cs</DependentUpon>
     </EmbeddedResource>

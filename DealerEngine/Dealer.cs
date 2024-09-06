@@ -36,7 +36,7 @@ internal partial class Dealer : IComparable<Dealer>
         MonthlyCharges = new List<Charge>();
         WorkOrders = new SortedDictionary<DateTime, WorkOrder>();
         Active = true;
-        Staged = false;
+        Queued = false;
     }
 
 
@@ -47,22 +47,45 @@ internal partial class Dealer : IComparable<Dealer>
         return Name.ToLower().CompareTo(other.Name.ToLower());
     }
 
+    // Override ToString()
+    public override string ToString()
+    {
+        return Name;
+    }
+
 
 
     /// <summary>
-    /// A collection of dealers which have been previously configured.
+    /// A collection of dealers which are marked as active and queued for invoicing.
     /// </summary>
-    public static Dealer[] SavedDealers 
-    { 
-        get => _savedDealers.ToArray(); 
+    public static Dealer[] QueuedDealers
+    {
+        get => _savedDealers.Where(x => x.Active && x.Queued).ToArray();
     }
 
     /// <summary>
-    /// A collection of dealers which are marked as active and staged for invoicing.
+    /// A collection of dealers which are marked as active and not queued for invoicing.
     /// </summary>
-    public static Dealer[] StagedDealers
+    public static Dealer[] UnQueuedDealers
     {
-        get => _savedDealers.Where(x => x.Active && x.Staged).ToArray();
+        get => _savedDealers.Where(x => x.Active && !x.Queued).ToArray();
+    }
+
+    /// <summary>
+    /// The total amount due from all queued dealers.
+    /// Includes on-the-lot charges (from work orders) and monthly charges.
+    /// </summary>
+    public static decimal QueuedDealersTotalDue
+    {
+        get => QueuedDealers.Sum(x => x.TotalInvoiceAmount);
+    }
+
+    /// <summary>
+    /// The total number of vehicles processed from all queued dealers.
+    /// </summary>
+    public static int QueuedDealersVehicleCount
+    {
+        get  => QueuedDealers.Sum(x => x.VehicleCount);
     }
 
     /// <summary>
@@ -172,7 +195,7 @@ internal partial class Dealer : IComparable<Dealer>
     /// Flag to signal whether an invoice should be generated for this dealer.
     /// </summary>
     [JsonIgnore]
-    public bool Staged { get; set; }
+    public bool Queued { get; set; }
 
     /// <summary>
     /// Return the dealer's name without any whitespace or non-alphanumeric characters for use as a filename.
@@ -204,6 +227,16 @@ internal partial class Dealer : IComparable<Dealer>
     }
 
     /// <summary>
+    /// Look up a Dealer by name in the saved configs.
+    /// </summary>
+    /// <param name="name">The name of the Dealer to look up.</param>
+    /// <returns>The requested Dealer if it exists, otherwise null.</returns>
+    public static Dealer LookupDealer(string name)
+    {
+        return _savedDealers.FirstOrDefault(x => x.Name == name);
+    }
+
+    /// <summary>
     /// Write the dealer configs to disk at <see cref="Settings.DEALER_CONFIG_PATH"/>.
     /// </summary>
     public static void SaveDealerConfigs()
@@ -222,24 +255,6 @@ internal partial class Dealer : IComparable<Dealer>
         }
     }
 
-    /// <summary>
-    /// Returns the total amount due from all staged dealers.
-    /// Includes on-the-lot charges (from work orders) and monthly charges.
-    /// </summary>
-    /// <returns>The total amount due</returns>
-    public static decimal GetTotalDueAllStagedDealers()
-    {
-        return StagedDealers.Sum(x => x.TotalInvoiceAmount);
-    }
-
-    /// <summary>
-    /// Returns the total number of vehicles processed from all staged dealers.
-    /// </summary>
-    /// <returns>The total number of vehicles processed.</returns>
-    public static int GetVehicleCountAllStagedDealers()
-    {
-        return StagedDealers.Sum(x => x.VehicleCount);
-    }
 
     /// <summary>
     /// Remove the dealer from the list of saved dealers and delete its config file.
