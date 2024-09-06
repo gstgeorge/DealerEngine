@@ -7,9 +7,12 @@ namespace DealerEngine;
 public partial class FormAddDealerToQueue : Form
 {
     private const int MARGIN = 10;
-    
-    Panel panelBottomMenuBar;
-    CheckedListBox clbUnqueuedDealers;
+    private readonly Size buttonSize = new Size(90, 30);
+
+    private CheckedListBox clbUnqueuedDealers;
+    private Panel panelBottomMenuBar;
+    private Button buttonCancel;
+    private Button buttonAccept;
 
     public FormAddDealerToQueue()
     {
@@ -20,19 +23,20 @@ public partial class FormAddDealerToQueue : Form
 
 
 
-    // Draw form controls
+    // Init form
     private void DrawForm()
     {
         SuspendLayout();
 
         Controls.Clear();
-
-        Text = "Select Dealer(s) to add to the Invoice Queue";
+        
+        StartPosition = FormStartPosition.CenterParent;
         FormBorderStyle = FormBorderStyle.FixedDialog;
+        Size = new Size(300, 400);
+        MinimumSize = Size;
         ControlBox = false;
-
-        Size buttonSize = new Size(90, 30);
-
+        Text = "Select Dealer(s) to add to the Invoice Queue";
+        
         // Bottom menu bar
         panelBottomMenuBar = new Panel
         {
@@ -45,7 +49,7 @@ public partial class FormAddDealerToQueue : Form
         };
 
         // Cancel button
-        Button cancelButton = new Button
+        buttonCancel = new Button
         {
             Size = buttonSize,
             Location = new Point(
@@ -56,24 +60,24 @@ public partial class FormAddDealerToQueue : Form
             Text = "Cancel",
             DialogResult = DialogResult.Cancel
         };
-        CancelButton = cancelButton;
-        panelBottomMenuBar.Controls.Add(cancelButton);
+        CancelButton = buttonCancel;
+        panelBottomMenuBar.Controls.Add(buttonCancel);
 
         // Accept button
-        Button acceptButton = new Button
+        buttonAccept = new Button
         {
             Size = buttonSize,
             Location = new Point(
-                x: cancelButton.Left - MARGIN - buttonSize.Width,
+                x: buttonCancel.Left - MARGIN - buttonSize.Width,
                 y: MARGIN),
             Anchor = (AnchorStyles.Bottom | AnchorStyles.Right),
             TabIndex = 1,
-            Text = "Accept",
+            Text = "Add",
             DialogResult = DialogResult.OK
         };
-        acceptButton.Click += new EventHandler(acceptButton_Click);
-        AcceptButton = acceptButton;
-        panelBottomMenuBar.Controls.Add(acceptButton);
+        buttonAccept.Click += buttonAccept_Click;
+        AcceptButton = buttonAccept;
+        panelBottomMenuBar.Controls.Add(buttonAccept);
 
         Controls.Add(panelBottomMenuBar);
 
@@ -96,7 +100,7 @@ public partial class FormAddDealerToQueue : Form
     }
 
     // Handle clicking the Accept button
-    private void acceptButton_Click(object sender, EventArgs e)
+    private void buttonAccept_Click(object sender, EventArgs e)
     {
         foreach (var item in clbUnqueuedDealers.CheckedItems)
         {
