@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DealerEngine.Properties;
+using System;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
@@ -8,6 +9,7 @@ namespace DealerEngine;
 public partial class FormMainMenu : Form
 {
     private const int MARGIN = 10;
+    private readonly Size buttonSize = new Size(150, 40);
 
     private Panel panelTopMenuBar;
     private Panel panelBottomMenuBar;
@@ -16,6 +18,7 @@ public partial class FormMainMenu : Form
     private Button buttonImport;
     private Button buttonAddDealerToQueue;
     private Button buttonGenerate;
+    private Button buttonClearQueue;
 
     private GroupBox gbInvoiceDate;
     private DateTimePicker dateTimePicker;
@@ -40,14 +43,18 @@ public partial class FormMainMenu : Form
     // Draw form controls.
     private void DrawForm()
     {
-        SuspendLayout();
-        
-        Controls.Clear();
-
-        Size buttonSize = new Size(150, 40);
-
+        StartPosition = FormStartPosition.CenterScreen;
+        ClientSize = new Size(buttonSize.Width * 5 + MARGIN * 6, 600);
+        MinimumSize = Size;
+        BackColor = Color.FromArgb(240, 240, 240);
         Icon = Properties.Resources.icon_dealerengine;
         Text = $"{Application.ProductName} {Application.ProductVersion}";
+
+        SuspendLayout();
+                
+        Controls.Clear();
+
+        #region top menu bar
 
         // Top menu bar
         panelTopMenuBar = new Panel
@@ -60,6 +67,7 @@ public partial class FormMainMenu : Form
             BackColor = Color.Transparent
         };
 
+        // Import button
         buttonImport = new Button
         {
             Size = buttonSize,
@@ -73,6 +81,7 @@ public partial class FormMainMenu : Form
         buttonImport.Click += new EventHandler(buttonImport_Click);
         panelTopMenuBar.Controls.Add(buttonImport);
 
+        // Add dealer to queue button
         buttonAddDealerToQueue = new Button
         {
             Size = buttonSize,
@@ -85,8 +94,26 @@ public partial class FormMainMenu : Form
         };
         buttonAddDealerToQueue.Click += new EventHandler(buttonAddDealerToQueue_Click);
         panelTopMenuBar.Controls.Add(buttonAddDealerToQueue);
-        
+
+        // Clear queue button
+        buttonClearQueue = new Button
+        {
+            Size = buttonSize,
+            Location = new Point(buttonAddDealerToQueue.Right + MARGIN, MARGIN),
+            Anchor = (AnchorStyles.Top | AnchorStyles.Left),
+            TabIndex = 2,
+            Text = "Clear Queue",
+            Image = Resources.img_remove,
+            TextImageRelation = TextImageRelation.ImageBeforeText,
+        };
+        buttonClearQueue.Click += new EventHandler(buttonClearQueue_Click);
+        panelTopMenuBar.Controls.Add(buttonClearQueue);
+
         Controls.Add(panelTopMenuBar);
+
+        #endregion
+
+        #region bottom menu bar
 
         // Bottom menu bar
         panelBottomMenuBar = new Panel
@@ -113,7 +140,7 @@ public partial class FormMainMenu : Form
         {
             Size = new Size(gbInvoiceDate.Width - MARGIN * 2, 20),
             Location = new Point(MARGIN, Convert.ToInt32(MARGIN * 1.5)),
-            TabIndex = 2,
+            TabIndex = 3,
             Format = DateTimePickerFormat.Custom,
             CustomFormat = "MM/dd/yyyy"
         };
@@ -177,7 +204,7 @@ public partial class FormMainMenu : Form
             Size = buttonSize,
             Location = new Point(panelBottomMenuBar.Right - buttonSize.Width - MARGIN, MARGIN),
             Anchor = (AnchorStyles.Bottom | AnchorStyles.Right),
-            TabIndex = 3,
+            TabIndex = 4,
             Text = "Generate",
             Image = Properties.Resources.img_download,
             TextImageRelation = TextImageRelation.ImageBeforeText,
@@ -187,6 +214,10 @@ public partial class FormMainMenu : Form
         panelBottomMenuBar.Controls.Add(buttonGenerate);
 
         Controls.Add(panelBottomMenuBar);
+
+        #endregion
+
+        #region dealer queue
 
         // Queued dealers
         dgvQueuedDealers = new DataGridView
@@ -277,6 +308,8 @@ public partial class FormMainMenu : Form
 
         Controls.Add(dgvQueuedDealers);
 
+        #endregion
+        
         ResumeLayout();
 
         updateQueuedDealers();
@@ -296,7 +329,10 @@ public partial class FormMainMenu : Form
         labelVehicleCountAllQueuedDealersValue.Text = Dealer.QueuedDealersVehicleCount.ToString();
         labelTotalDueAllQueuedDealersValue.Text = Dealer.QueuedDealersTotalDue.ToString("c");
 
-        buttonGenerate.Enabled = queuedDealers.Length > 0;
+        bool hasQueuedDealers = queuedDealers.Length > 0;
+
+        buttonClearQueue.Enabled = hasQueuedDealers;
+        buttonGenerate.Enabled = hasQueuedDealers;
 
         ResumeLayout();
     }
@@ -357,6 +393,18 @@ public partial class FormMainMenu : Form
             updateQueuedDealers();
         }
 
+    }
+
+    // Handles clicking the Clear Queue button.
+    private void buttonClearQueue_Click(object sender, EventArgs e)
+    {
+        foreach (Dealer d in Dealer.QueuedDealers)
+        {
+            d.WorkOrders.Clear();
+            d.Queued = false;
+        }
+
+        updateQueuedDealers();
     }
 
     // Handles clicking the Generate button.
